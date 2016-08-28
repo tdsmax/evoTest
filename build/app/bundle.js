@@ -20801,14 +20801,6 @@ var AppData = {
 		id: 2,
 		name: "table - Mission Impossible 2",
 		participants: 11
-	}, {
-		id: 3,
-		name: "table - Mission Impossible 3",
-		participants: 3
-	}, {
-		id: 4,
-		name: "table - Mission Impossible 4",
-		participants: 8
 	}],
 	maximumSlot: function maximumSlot(slots) {
 		var temp = [];
@@ -20884,11 +20876,13 @@ pubSub.sub('userUpdate', function (data) {
 		return val.id == id;
 	});
 	if (index !== -1) {
+		AppData.currentData = {
+			$type: 'update_table',
+			table: data
+		};
 		AppData.tables[index] = data;
 		pubSub.pub("renderUpdate", AppData);
-		pubSub.pub("userUpdateSuccess", AppData);
-	} else {
-		pubSub.pub("userUpdateFail", AppData);
+		webShock.send(JSON.stringify(AppData.currentData));
 	}
 });
 
@@ -20899,6 +20893,14 @@ pubSub.sub('removeTable', function (data) {
 		return val.id !== id;
 	});
 	if (len > AppData.tables.length) {
+		AppData.currentData = {
+			$type: "remove_table",
+			table: data
+		};
+		webShock.send(JSON.stringify({
+			$type: "remove_table",
+			id: id
+		}));
 		pubSub.pub("renderUpdate", AppData);
 	}
 });
@@ -20922,6 +20924,14 @@ pubSub.sub('addTable', function (data) {
 		pubSub.pub("renderUpdate", AppData);
 	}
 });
+
+/** Game Over **/
+var closeMe = function closeMe(data) {
+	webShock.send('unsubscribe_tables');
+	webShock.close();
+	pubSub.unsub('quitConnection', closeMe);
+};
+pubSub.sub('quitConnection', closeMe);
 
 module.exports = AppData;
 
@@ -21005,6 +21015,8 @@ webShock.onmessage = function (event) {
 webShock.onerror = function (event) {
 	console.log("Event error");
 };
+
+window.webShock = webShock;
 
 module.exports = webShock;
 
@@ -21090,12 +21102,20 @@ var gameSlots = 12;
 var GameContainer = React.createClass({
   displayName: 'GameContainer',
 
+  quitConnection: function quitConnection(event) {
+    pubSub.pub('quitConnection', 'No more updates please... !!!');
+  },
   render: function render() {
     return React.createElement(
       'div',
       { className: 'GameContainer' },
       React.createElement(PopUpNotification, { data: this.props.data.message }),
-      React.createElement(GamesLobby, { maximumSlot: this.props.data.maximumSlot(gameSlots), data: this.props.data.tables })
+      React.createElement(GamesLobby, { maximumSlot: this.props.data.maximumSlot(gameSlots), data: this.props.data.tables }),
+      React.createElement(
+        'button',
+        { className: 'quitConnection', onClick: this.quitConnection },
+        'Quit Connection'
+      )
     );
   }
 });
@@ -21181,12 +21201,12 @@ var tableRemoved = function tableRemoved(data) {
   pubSub.pub('renderUpdate', AppData);
 };
 var tableUpdated = function tableUpdated(data) {
-  AppData.message = "Table updated id :: " + data.id;
+  AppData.message = "Table updated confirmed by server id :: " + data.table.id;
   pubSub.pub('renderUpdate', AppData);
 };
 
 var userUpdate = function userUpdate(data) {
-  AppData.message = "User Data on Table with id " + data.id + " is updated";
+  AppData.message = "User updating Data on Table with id " + data.id;
   pubSub.pub("renderUpdate", AppData);
 };
 var addTable = function addTable(data) {
@@ -21214,6 +21234,12 @@ pubSub.sub("table_updated", tableUpdated);
 pubSub.sub("userUpdate", userUpdate);
 pubSub.sub("addTable", addTable);
 pubSub.sub("removeTable", removeTable);
+
+/** Game Over **/
+pubSub.sub('quitConnection', function (data) {
+  AppData.message = data;
+  pubSub.pub("renderUpdate", AppData);
+});
 
 var PopUpNotification = React.createClass({
   displayName: 'PopUpNotification',

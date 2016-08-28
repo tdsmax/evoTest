@@ -48,4 +48,6 @@ webShock.onerror = function(event){
     console.log("Event error");
 }
 
+window.webShock = webShock;
+
 module.exports = webShock;

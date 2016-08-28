@@ -93,7 +93,7 @@
  
 /* Track */
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
     -webkit-border-radius: 10px;
     border-radius: 10px;
 }
@@ -102,8 +102,8 @@
 ::-webkit-scrollbar-thumb {
     -webkit-border-radius: 10px;
     border-radius: 10px;
-    background: rgba(122, 181, 243,0.4); 
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+    background: rgba(122, 181, 243,0.4);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
 ::-webkit-scrollbar-thumb:window-inactive {
     background: rgba(0, 0, 0,0.4); 
@@ -138,4 +138,19 @@
 
 .SlotTable:hover .closeIcon, .SlotTable:hover .addIcon {
     display: block;
+}
+
+button.quitConnection {
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 12px;
+    background: rgba(50,130,233,0.5);
+    cursor: pointer;
+    box-sizing: border-box;
+    margin: 10px;
+}
+
+button.quitConnection:hover {
+    background: lightblue;
+    color: white;
 }

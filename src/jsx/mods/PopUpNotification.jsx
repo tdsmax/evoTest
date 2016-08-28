@@ -45,13 +45,13 @@ var tableRemoved = function(data){
   pubSub.pub('renderUpdate',AppData);
 };
 var tableUpdated = function(data){
-  AppData.message = "Table updated id :: " + data.id;
+  AppData.message = "Table updated confirmed by server id :: " + data.table.id;
   pubSub.pub('renderUpdate',AppData);
 };
 
 
 var userUpdate = function(data){
-  AppData.message = "User Data on Table with id " + data.id + " is updated";
+  AppData.message = "User updating Data on Table with id " + data.id;
   pubSub.pub("renderUpdate",AppData);
 }
 var addTable = function(data){
@@ -79,6 +79,12 @@ pubSub.sub("table_updated",tableUpdated);
 pubSub.sub("userUpdate",userUpdate);
 pubSub.sub("addTable",addTable);
 pubSub.sub("removeTable",removeTable);
+
+/** Game Over **/
+pubSub.sub('quitConnection',function(data){
+  AppData.message = data;
+  pubSub.pub("renderUpdate",AppData);
+});
 
 var PopUpNotification = React.createClass({
   render: function() {
