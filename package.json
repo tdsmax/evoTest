@@ -23,6 +23,7 @@
   "devDependencies": {
     "babel-core": "^6.11.4",
     "babel-loader": "^6.2.4",
+    "jasmine": "^2.4.1",
     "webpack": "^1.13.1"
   }
 }
