@@ -45,8 +45,33 @@ pubSub.sub('connectionReady',function(data){
       "password": "password1234"
     }));
 });
-
-
+pubSub.sub('login_successful',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('login_failed',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('pong',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('table_list',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('update_failed',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('removal_failed',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('table_added',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('table_removed',function(data){
+	console.log("data:: From Server" + data);
+});
+pubSub.pub('table_updated',function(data){
+	console.log("data:: From Server" + data);
+});
 
 
 /*** Core Api Pub Sub ***/
