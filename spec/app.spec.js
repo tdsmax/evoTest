@@ -1,9 +1,10 @@
 'use strict';
 
 // Initial State
+
 describe('App Module', function () {
-  var pubSub = require('../src/js/PubSub.js');
-  var webShock = require('../src/js/SocketApi.js');
+  var pubSub = require('./PubSub.js');
+  var webShock = require('./SocketApi.js');
 
   it('should create connection on connectionReady Event', function(){
     expect( pubSub.sub ).toBeDefined( );
