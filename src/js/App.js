@@ -68,7 +68,7 @@ pubSub.sub('removal_failed',function(data){
 pubSub.sub('table_added',function(data){
 	var id = data.after_id,
 	index = AppData.tables.findIndex(function(val){return val.id == id;})
-	if(index === -1){
+	if(index !== -1){
 		index = AppData.tables.findIndex(function(val){return val.id == id;});
 		AppData.tables.splice(index+1, 0, data.table);
 		AppData.tables.join();
