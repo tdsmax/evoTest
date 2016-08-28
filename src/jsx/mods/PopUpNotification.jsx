@@ -6,6 +6,10 @@ var AppData = require('../../js/App.js');
 var GameRenderer = require('../index.jsx');
 var pubSub = require('../../js/PubSub.js');
 
+var connectionReady = function(data){
+  AppData.message = "Connection is Ready";
+  pubSub.pub('renderUpdate',AppData);
+};
 var userUpdate = function(data){
   AppData.message = "User Data on Table with id " + data.id + " is updated";
   pubSub.pub("renderUpdate",AppData);
@@ -19,6 +23,7 @@ var removeTable = function(data){
   pubSub.pub("renderUpdate",AppData);
 }
 
+pubSub.sub("connectionReady",connectionReady);
 pubSub.sub("userUpdate",userUpdate);
 pubSub.sub("addTable",addTable);
 pubSub.sub("removeTable",removeTable);

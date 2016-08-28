@@ -20789,6 +20789,7 @@ module.exports = require('./lib/React');
 // This File will contiain app
 
 var pubSub = require('./PubSub.js');
+var webShock = require('./SocketApi.js');
 
 var AppData = {
 	message: "User Logges in",
@@ -20818,6 +20819,16 @@ var AppData = {
 	}
 };
 
+/*** Socket Connection PubSub **/
+pubSub.sub('connectionReady', function (data) {
+	webShock.send(JSON.stringify({
+		"$type": "login",
+		"username": "user1234",
+		"password": "password1234"
+	}));
+});
+
+/*** Core Api Pub Sub ***/
 pubSub.sub('userUpdate', function (data) {
 	var id = data.id,
 	    index = AppData.tables.findIndex(function (val) {
@@ -20869,7 +20880,7 @@ pubSub.sub('addTable', function (data) {
 
 module.exports = AppData;
 
-},{"./PubSub.js":176}],176:[function(require,module,exports){
+},{"./PubSub.js":176,"./SocketApi.js":177}],176:[function(require,module,exports){
 "use strict";
 
 var PubSub = {
@@ -20903,27 +20914,24 @@ module.exports = PubSub;
 'use strict';
 
 var Sys = require('./Sys.js');
+var pubSub = require('./PubSub.js');
 
 // WebSockets API
-var webShock = {};
-//var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
+var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
 webShock.onopen = function (event) {
-    webShock.send(JSON.stringify({
-        "$type": "login",
-        "username": "user1234",
-        "password": "password1234"
-    }));
+    console.log('event : ' + event.data);
+    pubSub.pub("connectionReady", event);
 };
 webShock.onmessage = function (event) {
-    console.log("event");
+    console.log(JSON.parse(event.data));
 };
 webShock.onerror = function (event) {
     console.log("Event error");
 };
 
-/*module.exports = webShock;*/
+module.exports = webShock;
 
-},{"./Sys.js":178}],178:[function(require,module,exports){
+},{"./PubSub.js":176,"./Sys.js":178}],178:[function(require,module,exports){
 "use strict";
 /**
  * @description Util file
@@ -21057,6 +21065,10 @@ var AppData = require('../../js/App.js');
 var GameRenderer = require('../index.jsx');
 var pubSub = require('../../js/PubSub.js');
 
+var connectionReady = function connectionReady(data) {
+  AppData.message = "Connection is Ready";
+  pubSub.pub('renderUpdate', AppData);
+};
 var userUpdate = function userUpdate(data) {
   AppData.message = "User Data on Table with id " + data.id + " is updated";
   pubSub.pub("renderUpdate", AppData);
@@ -21070,6 +21082,7 @@ var removeTable = function removeTable(data) {
   pubSub.pub("renderUpdate", AppData);
 };
 
+pubSub.sub("connectionReady", connectionReady);
 pubSub.sub("userUpdate", userUpdate);
 pubSub.sub("addTable", addTable);
 pubSub.sub("removeTable", removeTable);

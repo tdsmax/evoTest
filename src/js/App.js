@@ -1,6 +1,7 @@
 'use strict'
 // This File will contiain app
 var pubSub = require('./PubSub.js');
+var webShock = require('./SocketApi.js');
 
 var AppData = {
 	message: "User Logges in",
@@ -36,6 +37,19 @@ var AppData = {
 }
 
 
+/*** Socket Connection PubSub **/
+pubSub.sub('connectionReady',function(data){
+	webShock.send(JSON.stringify({
+      "$type": "login",
+      "username": "user1234",
+      "password": "password1234"
+    }));
+});
+
+
+
+
+/*** Core Api Pub Sub ***/
 pubSub.sub('userUpdate',function(data){
 	var id = data.id,
 	index = AppData.tables.findIndex(function(val){return val.id == id;})

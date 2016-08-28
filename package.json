@@ -16,7 +16,7 @@
     "watchify": "^3.7.0"
   },
   "scripts": {
-    "test": "browserify ./src/js/* ./src/jsx/* ./src/test/js/* -t babelify -o ./build/test/bundle.js",
+    "test": "browserify ./src/js/* ./src/jsx/*.jsx ./src/test/js/* -t babelify -o ./build/test/bundle.js",
     "build": "browserify ./src/js/* ./src/jsx/* -t babelify -o ./build/app/bundle.js",
     "start": "watchify ./src/js/* ./src/jsx/*.jsx -v -t babelify -o ./build/app/bundle.js"
   },

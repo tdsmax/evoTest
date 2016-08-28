@@ -24774,131 +24774,144 @@ function match_ (obj, pattern, ca, cb) {
 }).call(this,require('_process'),require("buffer").Buffer)
 },{"_process":58,"buffer":2}],206:[function(require,module,exports){
 'use strict';
+// This File will contiain app
 
-var CalendarUtil = function CalendarUtil() {
-    var val = arguments[0];
-    if (Sys.isDefined(val)) {
-        switch (Sys.getType(val)) {
-            case '[object Object]':
-                this.year = parseInt(val.year, 10);
-                this.month = parseInt(val.month, 10);
-                break;
-            case '[object String]':
-                val = val.split('-');
-                this.year = parseInt(val[0], 10);
-                this.month = parseInt(val[1], 10);
-                break;
-            default:
-                console.log("No Date Found");
-                break;
-        }
-    } else {
-        return undefined;
-    }
+var pubSub = require('./PubSub.js');
+
+var AppData = {
+	message: "User Logges in",
+	tables: [{
+		id: 1,
+		name: "table - Mission Impossible",
+		participants: 5
+	}, {
+		id: 2,
+		name: "table - Mission Impossible 2",
+		participants: 11
+	}, {
+		id: 3,
+		name: "table - Mission Impossible 3",
+		participants: 3
+	}, {
+		id: 4,
+		name: "table - Mission Impossible 4",
+		participants: 8
+	}],
+	maximumSlot: function maximumSlot(slots) {
+		var temp = [];
+		for (var i = 1; i <= slots; i++) {
+			temp.push(i);
+		}
+		return temp;
+	}
 };
 
-CalendarUtil.prototype.isLeapYear = function (year) {
-    var year = year || this.year;
-    return year % 4 === 0 && year % 100 !== 0 || year % 400 === 0;
-};
-
-CalendarUtil.prototype.daysInMonth = function (month) {
-    return [31, this.isLeapYear() ? 28 : 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month];
-};
-
-CalendarUtil.prototype.daysInYear = function (year) {
-    return isLeapYear(year) ? 366 : 365;
-};
-
-},{}],207:[function(require,module,exports){
-"use strict";
-/**
- * @description Util file
- * @author Tarandeep Singh
- * @created 2016-08-09
-*/
-
-var Sys = {};
-
-Sys = {
-    isEmptyObject: function isEmptyObject(val) {
-        return this.isObject(val) && Object.keys(val).length;
-    },
-    /** This Returns Object Type */
-    getType: function getType(val) {
-        return Object.prototype.toString.call(val);
-    },
-    /** This Checks and Return if Object is Defined */
-    isDefined: function isDefined(val) {
-        return val !== void 0 || typeof val !== 'undefined';
-    },
-    /** Run a Map on an Array **/
-    map: function map(arr, fn) {
-        var res = [],
-            i = 0;
-        for (; i < arr.length; ++i) {
-            res.push(fn(arr[i], i));
-        }
-        arr = null;
-        return res;
-    },
-    /** Checks and Return if the prop is Objects own Property */
-    hasOwnProp: function hasOwnProp(obj, val) {
-        return Object.prototype.hasOwnProperty.call(obj, val);
-    },
-    /** Extend properties from extending Object to initial Object */
-    extend: function extend(newObj, oldObj) {
-        if (this.isDefined(newObj) && this.isDefined(oldObj)) {
-            for (var prop in oldObj) {
-                if (this.hasOwnProp(oldObj, prop)) {
-                    newObj[prop] = oldObj[prop];
-                }
-            }
-            return newObj;
-        } else {
-            return newObj || oldObj || {};
-        }
-    }
-};
-
-// This Method will create Multiple functions in the Sys object that can be used to test type of
-['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Object', 'Array', 'Undefined'].forEach(function (name) {
-    Sys['is' + name] = function (obj) {
-        return toString.call(obj) == '[object ' + name + ']';
-    };
+pubSub.sub('userUpdate', function (data) {
+	var id = data.id,
+	    index = AppData.tables.findIndex(function (val) {
+		return val.id == id;
+	});
+	if (index !== -1) {
+		AppData.tables[index] = data;
+		pubSub.pub("renderUpdate", AppData);
+		pubSub.pub("userUpdateSuccess", AppData);
+	} else {
+		pubSub.pub("userUpdateFail", AppData);
+	}
 });
 
-module.exports = Sys;
+pubSub.sub('removeTable', function (data) {
+	var id = data.id;
+	AppData.tables = AppData.tables.filter(function (val) {
+		return val.id !== id;
+	});
+	pubSub.pub("renderUpdate", AppData);
+});
+
+pubSub.sub('addTable', function (data) {
+	var id = data.id + 1,
+	    index = AppData.tables.findIndex(function (val) {
+		return val.id == id;
+	});
+	if (index === -1) {
+		var setCharAt = function setCharAt(str, index, chr) {
+			if (index > str.length - 1) return str;
+			return str.substr(0, index) + chr + str.substr(index + 1);
+		};
+
+		id = data.id;
+		index = AppData.tables.findIndex(function (val) {
+			return val.id == id;
+		});
+
+		setCharAt(data.name, data.name.indexOf(data.id), data.id + 1);
+		AppData.tables.splice(index + 1, 0, {
+			id: data.id + 1,
+			name: setCharAt(data.name, data.name.indexOf(data.id), data.id + 1),
+			participants: data.participants
+		});
+		AppData.tables.join();
+	}
+	pubSub.pub("renderUpdate", AppData);
+});
+
+module.exports = AppData;
+
+},{"./PubSub.js":207}],207:[function(require,module,exports){
+"use strict";
+
+var PubSub = {
+	events: {},
+	sub: function sub(evName, fn) {
+		this.events[evName] = this.events[evName] || [];
+		this.events[evName].push(fn);
+	},
+	unsub: function unsub(evName, fn) {
+		if (this.events[evName]) {
+			for (var i = 0; i < this.events[evName].length; i++) {
+				if (this.events[evName][i] === fn) {
+					this.events[evName].splice(i, 1);
+					break;
+				}
+			}
+		}
+	},
+	pub: function pub(evName, data) {
+		if (this.events[evName]) {
+			this.events[evName].forEach(function (fn) {
+				fn(data);
+			});
+		}
+	}
+};
+
+module.exports = PubSub;
 
 },{}],208:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
-var ReactDOM = require('react-dom');
+var Sys = require('./Sys.js');
 
-var ExampleApplication = React.createClass({
-  displayName: 'ExampleApplication',
+// WebSockets API
+var webShock = {};
+//var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
+webShock.onopen = function (event) {
+    webShock.send(JSON.stringify({
+        "$type": "login",
+        "username": "user1234",
+        "password": "password1234"
+    }));
+};
+webShock.onmessage = function (event) {
+    console.log("event");
+};
+webShock.onerror = function (event) {
+    console.log("Event error");
+};
 
-  render: function render() {
-    var elapsed = Math.round(this.props.elapsed / 100);
-    var seconds = elapsed / 10 + (elapsed % 10 ? '' : '.0');
-    var message = 'Watch React has been success running for ' + seconds + ' seconds.';
+/*module.exports = webShock;*/
 
-    return React.createElement(
-      'p',
-      { className: 'runMe' },
-      message + "Yo Man"
-    );
-  }
-});
-
-var start = new Date().getTime();
-
-setInterval(function () {
-  ReactDOM.render(React.createElement(ExampleApplication, { elapsed: new Date().getTime() - start }), document.getElementById('gamesLobby'));
-}, 50);
-
-},{"react":204,"react-dom":59}],209:[function(require,module,exports){
+},{"./Sys.js":209}],209:[function(require,module,exports){
 "use strict";
 /**
  * @description Util file
@@ -24960,6 +24973,234 @@ module.exports = Sys;
 
 },{}],210:[function(require,module,exports){
 'use strict';
+//This file contains action names :: Just for Reference
+
+var actions = ["authenticateUser", "authenticateUserResponse", "pingServer", "pingServerResponse", "subscribeData", "subscribeDataResponse", "unsubscribeData", "addTableClient", "addTableClientResponse", "updateTableClient", "updateTableClientResponse", "removeTableClient", "removeTableClientResponse", "serverTableAdded", "serverTableRemoved", "serverTableUpdated"];
+
+},{}],211:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+var ReactDOM = require('react-dom');
+var Api = require('../js/App.js');
+var PopUpNotification = require('./mods/PopUpNotification.jsx');
+var GamesLobby = require('./mods/GamesLobby.jsx');
+var pubSub = require('../js/PubSub.js');
+
+// Keeping Default Max participants on any table = 12
+var gameSlots = 12;
+
+var GameContainer = React.createClass({
+  displayName: 'GameContainer',
+
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'GameContainer' },
+      React.createElement(PopUpNotification, { data: this.props.data.message }),
+      React.createElement(GamesLobby, { maximumSlot: this.props.data.maximumSlot(gameSlots), data: this.props.data.tables })
+    );
+  }
+});
+
+var GameRenderer = function GameRenderer(data) {
+  ReactDOM.render(React.createElement(GameContainer, { data: data }), document.getElementById('gamesLobby'));
+};
+
+pubSub.sub("renderUpdate", GameRenderer);
+
+GameRenderer(Api);
+
+},{"../js/App.js":206,"../js/PubSub.js":207,"./mods/GamesLobby.jsx":212,"./mods/PopUpNotification.jsx":213,"react":204,"react-dom":59}],212:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+var ReactDom = require('react-dom');
+var SlotTable = require('./SlotTable.jsx');
+
+var GamesLobby = React.createClass({
+  displayName: 'GamesLobby',
+
+  render: function render() {
+    var maximumSlot = this.props.maximumSlot;
+    var tables = this.props.data.map(function (table, index) {
+      return React.createElement(SlotTable, { key: index, maximumSlot: maximumSlot, data: table });
+    });
+    return React.createElement(
+      'div',
+      { className: 'GamesLobby' },
+      tables
+    );
+  }
+});
+
+module.exports = GamesLobby;
+
+},{"./SlotTable.jsx":214,"react":204,"react-dom":59}],213:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+var ReactDOM = require('react-dom');
+var AppData = require('../../js/App.js');
+var GameRenderer = require('../index.jsx');
+var pubSub = require('../../js/PubSub.js');
+
+var userUpdate = function userUpdate(data) {
+  AppData.message = "User Data on Table with id " + data.id + " is updated";
+  pubSub.pub("renderUpdate", AppData);
+};
+var addTable = function addTable(data) {
+  AppData.message = "Trying to add a table after table " + data.id;
+  pubSub.pub("renderUpdate", AppData);
+};
+var removeTable = function removeTable(data) {
+  AppData.message = "Trying to remove Table " + data.id;
+  pubSub.pub("renderUpdate", AppData);
+};
+
+pubSub.sub("userUpdate", userUpdate);
+pubSub.sub("addTable", addTable);
+pubSub.sub("removeTable", removeTable);
+
+var PopUpNotification = React.createClass({
+  displayName: 'PopUpNotification',
+
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'PopUpNotification' },
+      this.props.data
+    );
+  }
+});
+
+module.exports = PopUpNotification;
+
+},{"../../js/App.js":206,"../../js/PubSub.js":207,"../index.jsx":211,"react":204,"react-dom":59}],214:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+var pubSub = require('../../js/PubSub.js');
+
+var SlotTable = React.createClass({
+  displayName: 'SlotTable',
+
+  onRemove: function onRemove(event) {
+    pubSub.pub("removeTable", this.props.data);
+  },
+  onUpdate: function onUpdate(event) {
+    var state = event.currentTarget.getAttribute('data-state');
+    var participants = this.props.data.participants;
+    this.props.data.participants = state === 'active' ? participants - 1 : participants + 1;
+    pubSub.pub("userUpdate", this.props.data);
+  },
+  onAdd: function onAdd(event) {
+    pubSub.pub("addTable", this.props.data);
+  },
+  render: function render() {
+    var onUpdate = this.onUpdate;
+    var data = this.props.data;
+    var activeParticipants = data.participants;
+    var name = data.name.split('-').length > 1 ? data.name.split('-')[1] : data.name;
+    var participants = this.props.maximumSlot.map(function (participant, i) {
+      var active = participant > activeParticipants ? 'deactive' : 'active';
+      return React.createElement(
+        'div',
+        { key: i, onClick: onUpdate, 'data-state': active, className: 'user ' + active },
+        participant
+      );
+    });
+    return React.createElement(
+      'div',
+      { className: 'SlotTable' },
+      React.createElement(
+        'div',
+        { className: 'closeIcon', onClick: this.onRemove },
+        'X'
+      ),
+      React.createElement(
+        'div',
+        { className: 'titleName' },
+        name
+      ),
+      React.createElement(
+        'div',
+        { className: 'participants' },
+        participants
+      ),
+      React.createElement(
+        'div',
+        { className: 'addIcon', onClick: this.onAdd },
+        '+'
+      )
+    );
+  }
+});
+
+module.exports = SlotTable;
+
+},{"../../js/PubSub.js":207,"react":204}],215:[function(require,module,exports){
+"use strict";
+/**
+ * @description Util file
+ * @author Tarandeep Singh
+ * @created 2016-08-09
+*/
+
+var Sys = {};
+
+Sys = {
+    isEmptyObject: function isEmptyObject(val) {
+        return this.isObject(val) && Object.keys(val).length;
+    },
+    /** This Returns Object Type */
+    getType: function getType(val) {
+        return Object.prototype.toString.call(val);
+    },
+    /** This Checks and Return if Object is Defined */
+    isDefined: function isDefined(val) {
+        return val !== void 0 || typeof val !== 'undefined';
+    },
+    /** Run a Map on an Array **/
+    map: function map(arr, fn) {
+        var res = [],
+            i = 0;
+        for (; i < arr.length; ++i) {
+            res.push(fn(arr[i], i));
+        }
+        arr = null;
+        return res;
+    },
+    /** Checks and Return if the prop is Objects own Property */
+    hasOwnProp: function hasOwnProp(obj, val) {
+        return Object.prototype.hasOwnProperty.call(obj, val);
+    },
+    /** Extend properties from extending Object to initial Object */
+    extend: function extend(newObj, oldObj) {
+        if (this.isDefined(newObj) && this.isDefined(oldObj)) {
+            for (var prop in oldObj) {
+                if (this.hasOwnProp(oldObj, prop)) {
+                    newObj[prop] = oldObj[prop];
+                }
+            }
+            return newObj;
+        } else {
+            return newObj || oldObj || {};
+        }
+    }
+};
+
+// This Method will create Multiple functions in the Sys object that can be used to test type of
+['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Object', 'Array', 'Undefined'].forEach(function (name) {
+    Sys['is' + name] = function (obj) {
+        return toString.call(obj) == '[object ' + name + ']';
+    };
+});
+
+module.exports = Sys;
+
+},{}],216:[function(require,module,exports){
+'use strict';
 
 var expect = require('expect');
 var Sys = require('./Sys');
@@ -24968,4 +25209,4 @@ var Sys = require('./Sys');
 expect(Sys.isObject({})).toEqual(true);
 console.log("Test Passed");
 
-},{"./Sys":209,"expect":9}]},{},[206,207,208,209,210]);
+},{"./Sys":215,"expect":9}]},{},[206,207,208,209,210,211,215,216]);
