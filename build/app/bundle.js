@@ -20822,10 +20822,40 @@ var AppData = {
 /*** Socket Connection PubSub **/
 pubSub.sub('connectionReady', function (data) {
 	webShock.send(JSON.stringify({
-		"$type": "login",
-		"username": "user1234",
-		"password": "password1234"
+		$type: "login",
+		username: "user1234",
+		password: "password1234"
 	}));
+});
+pubSub.sub('login_successful', function (data) {
+	webShock.send(JSON.stringify({
+		$type: "subscribe_tables"
+	}));
+});
+pubSub.sub('login_failed', function (data) {
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('pong', function (data) {
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('table_list', function (data) {
+	AppData.tables = data.tables;
+	pubSub.pub('renderUpdate', AppData);
+});
+pubSub.sub('update_failed', function (data) {
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('removal_failed', function (data) {
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('table_added', function (data) {
+	console.log("data:: From Server" + data);
+});
+pubSub.sub('table_removed', function (data) {
+	console.log("data:: From Server" + data);
+});
+pubSub.pub('table_updated', function (data) {
+	console.log("data:: From Server" + data);
 });
 
 /*** Core Api Pub Sub ***/
@@ -20919,14 +20949,47 @@ var pubSub = require('./PubSub.js');
 // WebSockets API
 var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
 webShock.onopen = function (event) {
-    console.log('event : ' + event.data);
-    pubSub.pub("connectionReady", event);
+	console.log('event : ' + event.data);
+	pubSub.pub("connectionReady", event);
 };
 webShock.onmessage = function (event) {
-    console.log(JSON.parse(event.data));
+	var data = JSON.parse(event.data);
+	switch (data.$type) {
+		case "login_successful":
+			pubSub.pub('login_successful', data);
+			break;
+		case "login_failed":
+			pubSub.pub('login_failed', data);
+			break;
+		case "pong":
+			pubSub.pub('pong', data);
+			break;
+		case "table_list":
+			pubSub.pub('table_list', data);
+			break;
+		case "update_failed":
+			pubSub.pub('update_failed', data);
+			break;
+		case "removal_failed":
+			pubSub.pub('removal_failed', data);
+			break;
+		case "table_added":
+			pubSub.pub('table_added', data);
+			break;
+		case "table_removed":
+			pubSub.pub('table_removed', data);
+			break;
+		case "table_updated":
+			pubSub.pub('table_updated', data);
+			break;
+		default:
+			console.log("SocketApi.js :: Caught an unhandled server response !!");
+			break;
+	}
+	console.log(JSON.parse(event.data));
 };
 webShock.onerror = function (event) {
-    console.log("Event error");
+	console.log("Event error");
 };
 
 module.exports = webShock;

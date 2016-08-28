@@ -40,13 +40,15 @@ var AppData = {
 /*** Socket Connection PubSub **/
 pubSub.sub('connectionReady',function(data){
 	webShock.send(JSON.stringify({
-      "$type": "login",
-      "username": "user1234",
-      "password": "password1234"
+      $type: "login",
+      username: "user1234",
+      password: "password1234"
     }));
 });
 pubSub.sub('login_successful',function(data){
-	console.log("data:: From Server" + data);
+	webShock.send(JSON.stringify({
+      $type: "subscribe_tables"
+    }));
 });
 pubSub.sub('login_failed',function(data){
 	console.log("data:: From Server" + data);
@@ -55,7 +57,8 @@ pubSub.sub('pong',function(data){
 	console.log("data:: From Server" + data);
 });
 pubSub.sub('table_list',function(data){
-	console.log("data:: From Server" + data);
+	AppData.tables = data.tables;
+	pubSub.pub('renderUpdate',AppData);
 });
 pubSub.sub('update_failed',function(data){
 	console.log("data:: From Server" + data);
@@ -64,10 +67,12 @@ pubSub.sub('removal_failed',function(data){
 	console.log("data:: From Server" + data);
 });
 pubSub.sub('table_added',function(data){
-	console.log("data:: From Server" + data);
+	
 });
 pubSub.sub('table_removed',function(data){
-	console.log("data:: From Server" + data);
+	var id = data.id;
+	AppData.tables = AppData.tables.filter(function(val){return val.id !== id;})
+	pubSub.pub("renderUpdate", AppData);
 });
 pubSub.pub('table_updated',function(data){
 	console.log("data:: From Server" + data);

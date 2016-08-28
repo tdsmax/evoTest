@@ -11,35 +11,35 @@ webShock.onopen = function(event){
 };
 webShock.onmessage = function(event){
 	var data = JSON.parse(event.data)
-	switch (data.type){
-		case: "login_successful"
+	switch (data.$type){
+		case "login_successful":
 			pubSub.pub('login_successful',data);
 		break;
-		case: "login_failed"
+		case "login_failed":
 			pubSub.pub('login_failed',data);
 		break;
-		case: "pong"
+		case "pong":
 			pubSub.pub('pong',data);
 		break;
-		case: "table_list"
+		case "table_list":
 			pubSub.pub('table_list',data);
 		break;
-		case: "update_failed"
+		case "update_failed":
 			pubSub.pub('update_failed',data);
 		break;
-		case: "removal_failed"
+		case "removal_failed":
 			pubSub.pub('removal_failed',data);
 		break;
-		case: "table_added"
+		case "table_added":
 			pubSub.pub('table_added',data);
 		break;
-		case: "table_removed"
+		case "table_removed":
 			pubSub.pub('table_removed',data);
 		break;
-		case: "table_updated"
+		case "table_updated":
 			pubSub.pub('table_updated',data);
 		break;
-		default 
+		default: 
 			console.log("SocketApi.js :: Caught an unhandled server response !!");
 		break;
 	}
