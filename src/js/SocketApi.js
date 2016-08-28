@@ -38,7 +38,7 @@ webShock.onmessage = function(event){
 		case "table_updated":
 			pubSub.pub('table_updated',data);
 		break;
-		default: 
+		default:
 			console.log("SocketApi.js :: Caught an unhandled server response !!");
 		break;
 	}
