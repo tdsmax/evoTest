@@ -20822,13 +20822,15 @@ var AppData = {
 /*** Socket Connection PubSub **/
 pubSub.sub('connectionReady', function (data) {
 	webShock.send(JSON.stringify({
-		"$type": "login",
-		"username": "user1234",
-		"password": "password1234"
+		$type: "login",
+		username: "user1234",
+		password: "password1234"
 	}));
 });
 pubSub.sub('login_successful', function (data) {
-	console.log("data:: From Server" + data);
+	webShock.send(JSON.stringify({
+		$type: "subscribe_tables"
+	}));
 });
 pubSub.sub('login_failed', function (data) {
 	console.log("data:: From Server" + data);
@@ -20837,7 +20839,8 @@ pubSub.sub('pong', function (data) {
 	console.log("data:: From Server" + data);
 });
 pubSub.sub('table_list', function (data) {
-	console.log("data:: From Server" + data);
+	AppData.tables = data.tables;
+	pubSub.pub('renderUpdate', AppData);
 });
 pubSub.sub('update_failed', function (data) {
 	console.log("data:: From Server" + data);
@@ -20951,7 +20954,7 @@ webShock.onopen = function (event) {
 };
 webShock.onmessage = function (event) {
 	var data = JSON.parse(event.data);
-	switch (data.type) {
+	switch (data.$type) {
 		case "login_successful":
 			pubSub.pub('login_successful', data);
 			break;

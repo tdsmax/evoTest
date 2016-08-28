@@ -11,7 +11,7 @@ webShock.onopen = function(event){
 };
 webShock.onmessage = function(event){
 	var data = JSON.parse(event.data)
-	switch (data.type){
+	switch (data.$type){
 		case "login_successful":
 			pubSub.pub('login_successful',data);
 		break;
