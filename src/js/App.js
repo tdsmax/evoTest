@@ -36,7 +36,6 @@ var AppData = {
 	}
 }
 
-
 /*** Socket Connection PubSub **/
 pubSub.sub('connectionReady',function(data){
 	webShock.send(JSON.stringify({
@@ -67,7 +66,15 @@ pubSub.sub('removal_failed',function(data){
 	console.log("data:: From Server" + data);
 });
 pubSub.sub('table_added',function(data){
-	
+	var id = data.id,
+	index = AppData.tables.findIndex(function(val){return val.id == id;})
+	if(index === -1){
+		index = AppData.tables.findIndex(function(val){return val.id == id;});
+		AppData.tables.splice(index+1, 0, data.table);
+		AppData.tables.join();
+		pubSub.pub("renderUpdate", AppData);
+		pubSub.pub('TableAddedServer',data.table);
+	}
 });
 pubSub.sub('table_removed',function(data){
 	var id = data.id;
@@ -93,9 +100,12 @@ pubSub.sub('userUpdate',function(data){
 });
 
 pubSub.sub('removeTable',function(data){
-	var id = data.id;
+	var id = data.id, len = AppData.tables.length;
 	AppData.tables = AppData.tables.filter(function(val){return val.id !== id;})
-	pubSub.pub("renderUpdate", AppData);
+	if(len > AppData.tables.length){
+
+		pubSub.pub("renderUpdate", AppData);	
+	}
 });
 
 pubSub.sub('addTable',function(data){
@@ -104,20 +114,14 @@ pubSub.sub('addTable',function(data){
 	if(index === -1){
 		id = data.id;
 		index = AppData.tables.findIndex(function(val){return val.id == id;})
-
-		function setCharAt(str,index,chr) {
-		    if(index > str.length-1) return str;
-		    return str.substr(0,index) + chr + str.substr(index+1);
-		}
-		setCharAt(data.name,data.name.indexOf(data.id),data.id+1)
 		AppData.tables.splice(index+1, 0, {
 			id: data.id+1,
-			name: setCharAt(data.name,data.name.indexOf(data.id),data.id+1),
+			name: data.name,
 			participants: data.participants
 		});
 		AppData.tables.join();
+		pubSub.pub("renderUpdate", AppData);
 	}
-	pubSub.pub("renderUpdate", AppData);
 });
 
 

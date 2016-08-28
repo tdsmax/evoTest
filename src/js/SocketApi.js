@@ -6,7 +6,6 @@ var pubSub = require('./PubSub.js');
 // WebSockets API
 var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
 webShock.onopen = function(event){
-	console.log('event : ' + event.data);
 	pubSub.pub("connectionReady",event);
 };
 webShock.onmessage = function(event){

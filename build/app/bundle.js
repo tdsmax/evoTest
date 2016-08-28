@@ -20849,10 +20849,26 @@ pubSub.sub('removal_failed', function (data) {
 	console.log("data:: From Server" + data);
 });
 pubSub.sub('table_added', function (data) {
-	console.log("data:: From Server" + data);
+	var id = data.id,
+	    index = AppData.tables.findIndex(function (val) {
+		return val.id == id;
+	});
+	if (index === -1) {
+		index = AppData.tables.findIndex(function (val) {
+			return val.id == id;
+		});
+		AppData.tables.splice(index + 1, 0, data.table);
+		AppData.tables.join();
+		pubSub.pub("renderUpdate", AppData);
+		pubSub.pub('TableAddedServer', data.table);
+	}
 });
 pubSub.sub('table_removed', function (data) {
-	console.log("data:: From Server" + data);
+	var id = data.id;
+	AppData.tables = AppData.tables.filter(function (val) {
+		return val.id !== id;
+	});
+	pubSub.pub("renderUpdate", AppData);
 });
 pubSub.pub('table_updated', function (data) {
 	console.log("data:: From Server" + data);
@@ -20874,11 +20890,15 @@ pubSub.sub('userUpdate', function (data) {
 });
 
 pubSub.sub('removeTable', function (data) {
-	var id = data.id;
+	var id = data.id,
+	    len = AppData.tables.length;
 	AppData.tables = AppData.tables.filter(function (val) {
 		return val.id !== id;
 	});
-	pubSub.pub("renderUpdate", AppData);
+	if (len > AppData.tables.length) {
+
+		pubSub.pub("renderUpdate", AppData);
+	}
 });
 
 pubSub.sub('addTable', function (data) {
@@ -20887,25 +20907,18 @@ pubSub.sub('addTable', function (data) {
 		return val.id == id;
 	});
 	if (index === -1) {
-		var setCharAt = function setCharAt(str, index, chr) {
-			if (index > str.length - 1) return str;
-			return str.substr(0, index) + chr + str.substr(index + 1);
-		};
-
 		id = data.id;
 		index = AppData.tables.findIndex(function (val) {
 			return val.id == id;
 		});
-
-		setCharAt(data.name, data.name.indexOf(data.id), data.id + 1);
 		AppData.tables.splice(index + 1, 0, {
 			id: data.id + 1,
-			name: setCharAt(data.name, data.name.indexOf(data.id), data.id + 1),
+			name: data.name,
 			participants: data.participants
 		});
 		AppData.tables.join();
+		pubSub.pub("renderUpdate", AppData);
 	}
-	pubSub.pub("renderUpdate", AppData);
 });
 
 module.exports = AppData;
@@ -20949,7 +20962,6 @@ var pubSub = require('./PubSub.js');
 // WebSockets API
 var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
 webShock.onopen = function (event) {
-	console.log('event : ' + event.data);
 	pubSub.pub("connectionReady", event);
 };
 webShock.onmessage = function (event) {
@@ -21132,6 +21144,45 @@ var connectionReady = function connectionReady(data) {
   AppData.message = "Connection is Ready";
   pubSub.pub('renderUpdate', AppData);
 };
+
+var loginSuccessful = function loginSuccessful(data) {
+  AppData.message = "User autheticated joined as a :: " + data.user_type;
+  pubSub.pub('renderUpdate', AppData);
+};
+
+var loginFailed = function loginFailed(data) {
+  AppData.message = "Could not authentucate user";
+  pubSub.pub('renderUpdate', AppData);
+};
+
+var tabeList = function tabeList(data) {
+  AppData.message = "Got Tables from Server :: " + data.tables.length;
+  pubSub.pub('renderUpdate', AppData);
+};
+
+var updateFailed = function updateFailed(data) {
+  AppData.message = "Could not update Table";
+  pubSub.pub('renderUpdate', AppData);
+};
+
+var removalFailed = function removalFailed(data) {
+  AppData.message = "Could not Remove Table";
+  pubSub.pub('renderUpdate', AppData);
+};
+
+var tableAdded = function tableAdded(data) {
+  AppData.message = "table Added by server after id :: " + data.after_id;
+  pubSub.pub('renderUpdate', AppData);
+};
+var tableRemoved = function tableRemoved(data) {
+  AppData.message = "Table removed by server :: " + data.id;
+  pubSub.pub('renderUpdate', AppData);
+};
+var tableUpdated = function tableUpdated(data) {
+  AppData.message = "Table updated id :: " + data.id;
+  pubSub.pub('renderUpdate', AppData);
+};
+
 var userUpdate = function userUpdate(data) {
   AppData.message = "User Data on Table with id " + data.id + " is updated";
   pubSub.pub("renderUpdate", AppData);
@@ -21146,6 +21197,18 @@ var removeTable = function removeTable(data) {
 };
 
 pubSub.sub("connectionReady", connectionReady);
+pubSub.sub('login_successful', loginSuccessful);
+pubSub.sub('login_failed', loginFailed);
+
+pubSub.sub('table_list', tabeList);
+
+pubSub.sub('update_failed', updateFailed);
+pubSub.sub('removal_failed', removalFailed);
+
+pubSub.sub("table_added", tableAdded);
+pubSub.sub("table_removed", tableRemoved);
+pubSub.sub("table_updated", tableUpdated);
+
 pubSub.sub("userUpdate", userUpdate);
 pubSub.sub("addTable", addTable);
 pubSub.sub("removeTable", removeTable);
