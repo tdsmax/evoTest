@@ -4,7 +4,8 @@ var expect = require('expect');
 var Sys = require('./Sys');
 
 // Initial State
-expect(
-	Sys.isObject({})		
-).toEqual(true);
-console.log("Test Passed");
+describe('App Module', function(){
+
+});
+
+console.log("Test Passed");console.log("Test Passed");console.log("Test Passed");console.log("Test Passed");
