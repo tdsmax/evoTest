@@ -3,7 +3,8 @@
 var Sys = require('./Sys.js');
 
 // WebSockets API
-var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
+var webShock = {};
+//var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
 webShock.onopen = function(event){
     webShock.send(JSON.stringify({
       "$type": "login",

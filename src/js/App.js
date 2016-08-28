@@ -1,14 +1,6 @@
 'use strict'
-
-// This File will contiain app 
-
-var pubSub = require('./PubSub');
-
-var userUpdate = function(data){
-	console.log("User Update data in App.js");
-	console.log(data);
-}
-pubSub.sub("userUpdate",userUpdate);
+// This File will contiain app
+var pubSub = require('./PubSub.js');
 
 var AppData = {
 	message: "User Logges in",
@@ -29,8 +21,8 @@ var AppData = {
 			participants: 3
 		},
 		{
-			id: 5,
-			name: "table - Mission Impossible 5",
+			id: 4,
+			name: "table - Mission Impossible 4",
 			participants: 8
 		}
 	],
@@ -40,18 +32,50 @@ var AppData = {
 			temp.push(i);
 		}
 		return temp;
-	},
-	cacheObjects: function(data){
-		var newData = {}; 
-		for(var i=0;i<data.length;i++){
-			newData[data[i].id] = data[i]
-		} 
-		return newData;
 	}
 }
 
-/** Convert array objects into a Hash Map for Easy Manipulation **/
-AppData.cacheTable = AppData.cacheObjects(AppData.tables);
+
+pubSub.sub('userUpdate',function(data){
+	var id = data.id,
+	index = AppData.tables.findIndex(function(val){return val.id == id;})
+	if(index !== -1){
+		AppData.tables[index] = data;
+		pubSub.pub("renderUpdate", AppData);
+		pubSub.pub("userUpdateSuccess",AppData);	
+	}else {
+		pubSub.pub("userUpdateFail",AppData);
+	}
+});
+
+pubSub.sub('removeTable',function(data){
+	var id = data.id;
+	AppData.tables = AppData.tables.filter(function(val){return val.id !== id;})
+	pubSub.pub("renderUpdate", AppData);
+});
+
+pubSub.sub('addTable',function(data){
+	var id = data.id+1,
+	index = AppData.tables.findIndex(function(val){return val.id == id;})
+	if(index === -1){
+		id = data.id;
+		index = AppData.tables.findIndex(function(val){return val.id == id;})
+
+		function setCharAt(str,index,chr) {
+		    if(index > str.length-1) return str;
+		    return str.substr(0,index) + chr + str.substr(index+1);
+		}
+		setCharAt(data.name,data.name.indexOf(data.id),data.id+1)
+		AppData.tables.splice(index+1, 0, {
+			id: data.id+1,
+			name: setCharAt(data.name,data.name.indexOf(data.id),data.id+1),
+			participants: data.participants
+		});
+		AppData.tables.join();
+	}
+	pubSub.pub("renderUpdate", AppData);
+});
+
 
 
 module.exports = AppData;

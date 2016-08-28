@@ -20786,16 +20786,9 @@ module.exports = require('./lib/React');
 
 },{"./lib/React":55}],175:[function(require,module,exports){
 'use strict';
+// This File will contiain app
 
-// This File will contiain app 
-
-var pubSub = require('./PubSub');
-
-var userUpdate = function userUpdate(data) {
-	console.log("User Update data in App.js");
-	console.log(data);
-};
-pubSub.sub("userUpdate", userUpdate);
+var pubSub = require('./PubSub.js');
 
 var AppData = {
 	message: "User Logges in",
@@ -20812,8 +20805,8 @@ var AppData = {
 		name: "table - Mission Impossible 3",
 		participants: 3
 	}, {
-		id: 5,
-		name: "table - Mission Impossible 5",
+		id: 4,
+		name: "table - Mission Impossible 4",
 		participants: 8
 	}],
 	maximumSlot: function maximumSlot(slots) {
@@ -20822,22 +20815,61 @@ var AppData = {
 			temp.push(i);
 		}
 		return temp;
-	},
-	cacheObjects: function cacheObjects(data) {
-		var newData = {};
-		for (var i = 0; i < data.length; i++) {
-			newData[data[i].id] = data[i];
-		}
-		return newData;
 	}
 };
 
-/** Convert array objects into a Hash Map for Easy Manipulation **/
-AppData.cacheTable = AppData.cacheObjects(AppData.tables);
+pubSub.sub('userUpdate', function (data) {
+	var id = data.id,
+	    index = AppData.tables.findIndex(function (val) {
+		return val.id == id;
+	});
+	if (index !== -1) {
+		AppData.tables[index] = data;
+		pubSub.pub("renderUpdate", AppData);
+		pubSub.pub("userUpdateSuccess", AppData);
+	} else {
+		pubSub.pub("userUpdateFail", AppData);
+	}
+});
+
+pubSub.sub('removeTable', function (data) {
+	var id = data.id;
+	AppData.tables = AppData.tables.filter(function (val) {
+		return val.id !== id;
+	});
+	pubSub.pub("renderUpdate", AppData);
+});
+
+pubSub.sub('addTable', function (data) {
+	var id = data.id + 1,
+	    index = AppData.tables.findIndex(function (val) {
+		return val.id == id;
+	});
+	if (index === -1) {
+		var setCharAt = function setCharAt(str, index, chr) {
+			if (index > str.length - 1) return str;
+			return str.substr(0, index) + chr + str.substr(index + 1);
+		};
+
+		id = data.id;
+		index = AppData.tables.findIndex(function (val) {
+			return val.id == id;
+		});
+
+		setCharAt(data.name, data.name.indexOf(data.id), data.id + 1);
+		AppData.tables.splice(index + 1, 0, {
+			id: data.id + 1,
+			name: setCharAt(data.name, data.name.indexOf(data.id), data.id + 1),
+			participants: data.participants
+		});
+		AppData.tables.join();
+	}
+	pubSub.pub("renderUpdate", AppData);
+});
 
 module.exports = AppData;
 
-},{"./PubSub":176}],176:[function(require,module,exports){
+},{"./PubSub.js":176}],176:[function(require,module,exports){
 "use strict";
 
 var PubSub = {
@@ -20873,7 +20905,8 @@ module.exports = PubSub;
 var Sys = require('./Sys.js');
 
 // WebSockets API
-var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
+var webShock = {};
+//var webShock = new WebSocket("wss://js-assignment.evolutiongaming.com/ws_api");
 webShock.onopen = function (event) {
     webShock.send(JSON.stringify({
         "$type": "login",
@@ -20952,6 +20985,12 @@ module.exports = Sys;
 
 },{}],179:[function(require,module,exports){
 'use strict';
+//This file contains action names :: Just for Reference
+
+var actions = ["authenticateUser", "authenticateUserResponse", "pingServer", "pingServerResponse", "subscribeData", "subscribeDataResponse", "unsubscribeData", "addTableClient", "addTableClientResponse", "updateTableClient", "updateTableClientResponse", "removeTableClient", "removeTableClientResponse", "serverTableAdded", "serverTableRemoved", "serverTableUpdated"];
+
+},{}],180:[function(require,module,exports){
+'use strict';
 
 var React = require('react');
 var ReactDOM = require('react-dom');
@@ -20970,16 +21009,8 @@ var GameContainer = React.createClass({
     return React.createElement(
       'div',
       { className: 'GameContainer' },
-      React.createElement(
-        'div',
-        { id: 'popUpNotificationContainer' },
-        React.createElement(PopUpNotification, { renderId: 'popUpNotificationContainer', data: this.props.data.message })
-      ),
-      React.createElement(
-        'div',
-        { id: 'gamesLobbyContainer' },
-        React.createElement(GamesLobby, { renderId: 'gamesLobbyContainer', maximumSlot: this.props.data.maximumSlot(gameSlots), data: this.props.data.tables })
-      )
+      React.createElement(PopUpNotification, { data: this.props.data.message }),
+      React.createElement(GamesLobby, { maximumSlot: this.props.data.maximumSlot(gameSlots), data: this.props.data.tables })
     );
   }
 });
@@ -20992,50 +21023,32 @@ pubSub.sub("renderUpdate", GameRenderer);
 
 GameRenderer(Api);
 
-},{"../js/App.js":175,"../js/PubSub.js":176,"./mods/GamesLobby.jsx":180,"./mods/PopUpNotification.jsx":181,"react":174,"react-dom":29}],180:[function(require,module,exports){
+},{"../js/App.js":175,"../js/PubSub.js":176,"./mods/GamesLobby.jsx":181,"./mods/PopUpNotification.jsx":182,"react":174,"react-dom":29}],181:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
 var ReactDom = require('react-dom');
 var SlotTable = require('./SlotTable.jsx');
-var pubSub = require('../../js/PubSub.js');
-
-var userUpdate = function userUpdate(data) {
-	console.log("User Update data in GamesLobby.jsx");
-	console.log(data);
-};
-pubSub.sub("userUpdate", userUpdate);
-
-var renderId;
 
 var GamesLobby = React.createClass({
-	displayName: 'GamesLobby',
+  displayName: 'GamesLobby',
 
-	render: function render() {
-		renderId = this.props.renderId;
-		var maximumSlot = this.props.maximumSlot;
-		var tables = this.props.data.map(function (table, index) {
-			return React.createElement(
-				'div',
-				{ key: index, className: 'SlotTable', id: 'slotTable' + table.id },
-				React.createElement(SlotTable, { renderId: 'slotTable' + table.id, maximumSlot: maximumSlot, data: table })
-			);
-		});
-		return React.createElement(
-			'div',
-			{ className: 'GamesLobby' },
-			tables
-		);
-	}
+  render: function render() {
+    var maximumSlot = this.props.maximumSlot;
+    var tables = this.props.data.map(function (table, index) {
+      return React.createElement(SlotTable, { key: index, maximumSlot: maximumSlot, data: table });
+    });
+    return React.createElement(
+      'div',
+      { className: 'GamesLobby' },
+      tables
+    );
+  }
 });
-
-var _renderGameLobby = function _renderGameLobby(data) {
-	ReactDOM.render(React.createElement(GamesLobby, { data: data }), document.getElementById(renderId));
-};
 
 module.exports = GamesLobby;
 
-},{"../../js/PubSub.js":176,"./SlotTable.jsx":182,"react":174,"react-dom":29}],181:[function(require,module,exports){
+},{"./SlotTable.jsx":183,"react":174,"react-dom":29}],182:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -21043,19 +21056,28 @@ var ReactDOM = require('react-dom');
 var AppData = require('../../js/App.js');
 var GameRenderer = require('../index.jsx');
 var pubSub = require('../../js/PubSub.js');
-var renderId;
 
 var userUpdate = function userUpdate(data) {
   AppData.message = "User Data on Table with id " + data.id + " is updated";
   pubSub.pub("renderUpdate", AppData);
 };
+var addTable = function addTable(data) {
+  AppData.message = "Trying to add a table after table " + data.id;
+  pubSub.pub("renderUpdate", AppData);
+};
+var removeTable = function removeTable(data) {
+  AppData.message = "Trying to remove Table " + data.id;
+  pubSub.pub("renderUpdate", AppData);
+};
+
 pubSub.sub("userUpdate", userUpdate);
+pubSub.sub("addTable", addTable);
+pubSub.sub("removeTable", removeTable);
 
 var PopUpNotification = React.createClass({
   displayName: 'PopUpNotification',
 
   render: function render() {
-    renderId = this.props.renderId;
     return React.createElement(
       'div',
       { className: 'PopUpNotification' },
@@ -21064,38 +21086,30 @@ var PopUpNotification = React.createClass({
   }
 });
 
-/*var _renderPopupNotification = function(data){
-	ReactDOM.render(
-	  <PopUpNotification data={data}/>,
-	  document.getElementById(renderId)
-	);
-}*/
-
 module.exports = PopUpNotification;
 
-},{"../../js/App.js":175,"../../js/PubSub.js":176,"../index.jsx":179,"react":174,"react-dom":29}],182:[function(require,module,exports){
+},{"../../js/App.js":175,"../../js/PubSub.js":176,"../index.jsx":180,"react":174,"react-dom":29}],183:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
 var pubSub = require('../../js/PubSub.js');
-var renderId;
 
 var SlotTable = React.createClass({
   displayName: 'SlotTable',
 
   onRemove: function onRemove(event) {
-    pubSub.pub("userRemove", this.props.data);
-    console.log(this.props.data.id);
-    console.log('remove');
+    pubSub.pub("removeTable", this.props.data);
   },
   onUpdate: function onUpdate(event) {
-    console.log(event);
+    var state = event.currentTarget.getAttribute('data-state');
+    var participants = this.props.data.participants;
+    this.props.data.participants = state === 'active' ? participants - 1 : participants + 1;
     pubSub.pub("userUpdate", this.props.data);
-    console.log(this.props.data.id);
-    console.log('update');
+  },
+  onAdd: function onAdd(event) {
+    pubSub.pub("addTable", this.props.data);
   },
   render: function render() {
-    var renderId = this.props.renderId;
     var onUpdate = this.onUpdate;
     var data = this.props.data;
     var activeParticipants = data.participants;
@@ -21110,7 +21124,7 @@ var SlotTable = React.createClass({
     });
     return React.createElement(
       'div',
-      { className: 'slotTable' },
+      { className: 'SlotTable' },
       React.createElement(
         'div',
         { className: 'closeIcon', onClick: this.onRemove },
@@ -21125,19 +21139,16 @@ var SlotTable = React.createClass({
         'div',
         { className: 'participants' },
         participants
+      ),
+      React.createElement(
+        'div',
+        { className: 'addIcon', onClick: this.onAdd },
+        '+'
       )
     );
   }
 });
-/*
-var _renderSlotTable = function(data){
-  ReactDOM.render(
-    <SlotTable data={data}/>,
-    document.getElementById(renderId)
-  );
-}
-*/
 
 module.exports = SlotTable;
 
-},{"../../js/PubSub.js":176,"react":174}]},{},[175,176,177,178,179]);
+},{"../../js/PubSub.js":176,"react":174}]},{},[175,176,177,178,179,180]);

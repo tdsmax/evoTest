@@ -5,17 +5,26 @@ var ReactDOM = require('react-dom');
 var AppData = require('../../js/App.js');
 var GameRenderer = require('../index.jsx');
 var pubSub = require('../../js/PubSub.js');
-var renderId;
 
 var userUpdate = function(data){
-	AppData.message = "User Data on Table with id " + data.id + " is updated";
+  AppData.message = "User Data on Table with id " + data.id + " is updated";
   pubSub.pub("renderUpdate",AppData);
 }
+var addTable = function(data){
+  AppData.message = "Trying to add a table after table " + data.id;
+  pubSub.pub("renderUpdate",AppData);
+}
+var removeTable = function(data){
+	AppData.message = "Trying to remove Table " + data.id;
+  pubSub.pub("renderUpdate",AppData);
+}
+
 pubSub.sub("userUpdate",userUpdate);
+pubSub.sub("addTable",addTable);
+pubSub.sub("removeTable",removeTable);
 
 var PopUpNotification = React.createClass({
   render: function() {
-  	renderId = this.props.renderId;
     return (
       <div className="PopUpNotification">
       	{this.props.data}
@@ -23,13 +32,6 @@ var PopUpNotification = React.createClass({
     );
   }
 });
-
-/*var _renderPopupNotification = function(data){
-	ReactDOM.render(
-	  <PopUpNotification data={data}/>,
-	  document.getElementById(renderId)
-	);
-}*/
 
 
 module.exports = PopUpNotification;

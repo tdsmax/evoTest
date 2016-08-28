@@ -14,12 +14,8 @@ var GameContainer = React.createClass({
   render: function() {
     return (
       <div className="GameContainer">
-        <div id="popUpNotificationContainer">
-          <PopUpNotification renderId={'popUpNotificationContainer'} data={this.props.data.message}></PopUpNotification>
-        </div>
-        <div id="gamesLobbyContainer">
-          <GamesLobby renderId="gamesLobbyContainer" maximumSlot={this.props.data.maximumSlot(gameSlots)} data={this.props.data.tables}></GamesLobby>
-        </div>
+          <PopUpNotification data={this.props.data.message}></PopUpNotification>
+          <GamesLobby maximumSlot={this.props.data.maximumSlot(gameSlots)} data={this.props.data.tables}></GamesLobby>
       </div>
     );
   }

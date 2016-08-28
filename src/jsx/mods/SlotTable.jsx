@@ -2,22 +2,21 @@
 
 var React = require('react');
 var pubSub = require('../../js/PubSub.js');
-var renderId;
 
 var SlotTable = React.createClass({
   onRemove: function(event){
-    pubSub.pub("userRemove", this.props.data);
-    console.log(this.props.data.id);
-    console.log('remove');
+    pubSub.pub("removeTable", this.props.data);
   },
   onUpdate: function(event){
-    console.log(event);
+    var state = event.currentTarget.getAttribute('data-state');
+    var participants = this.props.data.participants;
+    this.props.data.participants = state === 'active' ? participants - 1 : participants + 1;
     pubSub.pub("userUpdate", this.props.data);
-    console.log(this.props.data.id);
-    console.log('update');
+  },
+  onAdd: function(event){
+    pubSub.pub("addTable",this.props.data);
   },
   render: function() {
-    var renderId = this.props.renderId;
     var onUpdate = this.onUpdate;
     var data = this.props.data;
     var activeParticipants = data.participants;
@@ -29,24 +28,17 @@ var SlotTable = React.createClass({
         );
     }); 
     return (
-      <div className="slotTable">
+      <div className="SlotTable">
           <div className="closeIcon" onClick={this.onRemove}>X</div>
           <div className="titleName">{name}</div>
           <div className="participants">
             {participants}
           </div>
+          <div className="addIcon" onClick={this.onAdd}>+</div>
       </div>
     );
   }
 });
-/*
-var _renderSlotTable = function(data){
-  ReactDOM.render(
-    <SlotTable data={data}/>,
-    document.getElementById(renderId)
-  );
-}
-*/
 
 
 module.exports = SlotTable;

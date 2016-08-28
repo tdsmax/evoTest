@@ -129,6 +129,13 @@
     display: none;
 }
 
-.SlotTable:hover .closeIcon {
+.addIcon {
+    position: absolute;
+    right: 12px;
+    bottom: 5px;
+    display: none;
+}
+
+.SlotTable:hover .closeIcon, .SlotTable:hover .addIcon {
     display: block;
 }
