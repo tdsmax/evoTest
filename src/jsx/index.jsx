@@ -11,11 +11,15 @@ var pubSub = require('../js/PubSub.js');
 var gameSlots = 12;
 
 var GameContainer = React.createClass({
+  quitConnection: function(event){
+    pubSub.pub('quitConnection','No more updates please... !!!');
+  },
   render: function() {
     return (
       <div className="GameContainer">
           <PopUpNotification data={this.props.data.message}></PopUpNotification>
           <GamesLobby maximumSlot={this.props.data.maximumSlot(gameSlots)} data={this.props.data.tables}></GamesLobby>
+          <button className="quitConnection" onClick={this.quitConnection}>Quit Connection</button>
       </div>
     );
   }

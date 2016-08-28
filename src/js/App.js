@@ -15,16 +15,6 @@ var AppData = {
 			id: 2,
 			name: "table - Mission Impossible 2",
 			participants: 11
-		},
-		{
-			id: 3,
-			name: "table - Mission Impossible 3",
-			participants: 3
-		},
-		{
-			id: 4,
-			name: "table - Mission Impossible 4",
-			participants: 8
 		}
 	],
 	maximumSlot: function(slots){
@@ -93,11 +83,13 @@ pubSub.sub('userUpdate',function(data){
 	var id = data.id,
 	index = AppData.tables.findIndex(function(val){return val.id == id;})
 	if(index !== -1){
+		AppData.currentData = {
+			$type : 'update_table',
+			table : data
+		}
 		AppData.tables[index] = data;
 		pubSub.pub("renderUpdate", AppData);
-		pubSub.pub("userUpdateSuccess",AppData);	
-	}else {
-		pubSub.pub("userUpdateFail",AppData);
+		webShock.send(JSON.stringify(AppData.currentData));	
 	}
 });
 
@@ -105,7 +97,15 @@ pubSub.sub('removeTable',function(data){
 	var id = data.id, len = AppData.tables.length;
 	AppData.tables = AppData.tables.filter(function(val){return val.id !== id;})
 	if(len > AppData.tables.length){
-		pubSub.pub("renderUpdate", AppData);	
+		AppData.currentData = {
+			$type: "remove_table",
+			table: data
+		} 
+		webShock.send(JSON.stringify({
+			$type: "remove_table",
+			id: id
+		}));
+		pubSub.pub("renderUpdate", AppData);
 	}
 });
 
@@ -124,6 +124,14 @@ pubSub.sub('addTable',function(data){
 		pubSub.pub("renderUpdate", AppData);
 	}
 });
+
+/** Game Over **/
+var closeMe = function(data){
+	webShock.send('unsubscribe_tables');
+	webShock.close();
+	pubSub.unsub('quitConnection',closeMe);
+}
+pubSub.sub('quitConnection',closeMe);
 
 
 
