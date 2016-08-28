@@ -1,0 +1,134 @@
+*{
+    padding: 0;
+    margin: 0;
+    font-family: Helvetica, sans-serif;
+}
+
+#gamesLobby {
+    background-color: #fafafa;
+    width: 80%;
+    max-width: 800px;
+    margin: auto;
+    padding: 25px;
+}
+
+.PopUpNotification {
+    font-size: 18px;
+    background-color: #f2f9fc;
+    border: 1px solid #c9e6f2;
+    border-radius: 3px;
+    display: block;
+    padding: 10px;
+}
+
+
+.GamesLobby {
+    height: 170px;
+    overflow-y: hidden;
+    overflow-x: scroll;
+    white-space: nowrap;
+    width: 100%;
+    margin: 20px auto;
+    border: 1px solid lightseagreen;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
+.GameContainer {
+    overflow: hidden;
+}
+
+.SlotTable {
+    position: relative;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 200px;
+    height: 125px;
+    border: 1px solid rgba(122, 181, 243,0.8);
+    border-radius: 10px;
+    margin: 10px;
+    display: inline-block;
+    background: rgba(122, 181, 243,0.8);
+    background: -webkit-linear-gradient(rgba(122, 181, 243,0.6), rgba(122, 181, 255,0.9));
+    background: -o-linear-gradient(rgba(122, 181, 243,0.6), rgba(122, 181, 255,0.9));
+    background: -moz-linear-gradient(rgba(122, 181, 243,0.6), rgba(122, 181, 255,0.9));
+    background: linear-gradient(rgba(122, 181, 255,0.6), rgba(122, 181, 255,0.9));
+    box-shadow: 0px 2px 2px rgba(0,0,0,0.4);
+    box-sizing: border-box;
+}
+
+
+.titleName {
+    text-overflow: ellipsis;
+    width: 100%;
+    overflow: hidden;
+    font-size: 17px;
+}
+
+.participants {
+    margin: 10px auto;
+    white-space: normal;
+    box-shadow: 0px 0px 2px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(0,0,0,0.5);
+    background: rgba(33,50,105,0.4);
+    box-sizing: border-box;
+    padding: 2px;
+}
+
+.user {
+    color: lightgray;
+    display: inline-block;
+    margin-right: 10px;
+    width: 15px;
+    transition: all 0.2s;
+}
+
+
+/*** Helper css for custom scroll on Webkit **/
+
+/* Let's get this party started */
+::-webkit-scrollbar {
+    width: 12px;
+}
+ 
+/* Track */
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(122, 181, 243,0.4); 
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+::-webkit-scrollbar-thumb:window-inactive {
+    background: rgba(0, 0, 0,0.4); 
+}
+
+.user.active {
+    color: green;
+}
+
+.user:hover {
+    color: lightblue;
+    transform: scale(1.1);
+}
+
+.SlotTable:hover {
+    transform: scale(1.1);
+}
+
+.closeIcon {
+    position: absolute;
+    right: 12px;
+    top: 5px;
+    display: none;
+}
+
+.SlotTable:hover .closeIcon {
+    display: block;
+}
